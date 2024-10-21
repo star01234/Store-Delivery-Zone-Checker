@@ -1,40 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-
+// src/App.jsx
+import { useEffect, useState } from "react";
 import axios from "axios";
-import "leaflet/dist/leaflet.css";
-import "./App.css";
-import L from "leaflet";
 import Swal from "sweetalert2";
-import LocationMap from "./components/LocationMap";
+
+import HeaderComponent from "./components/Header";
+import ButtonComponent from "./components/Button";
+import MapComponent from "./components/Map";
+import AppRoutes from "./routers/Router";
 
 const base_url = import.meta.env.VITE_API_BASE_URL;
-
-// Define custom icons
-const storeIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/128/11891/11891781.png",
-  iconSize: [38, 38],
-  iconAnchor: [22, 38],
-  popupAnchor: [0, -40],
-});
-
-const houseIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/128/619/619153.png",
-  iconSize: [38, 38],
-  iconAnchor: [22, 38],
-  popupAnchor: [0, -40],
-});
-
-// Custom icon for selected store
-const selectedStoreIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/128/149/149059.png", 
-  iconSize: [38, 38],
-  iconAnchor: [22, 38],
-  popupAnchor: [0, -40],
-});
+console.log(base_url);
 
 function App() {
-  const center = [13.838500199744178, 100.02534412184882];
+  <AppRoutes />
+  const center = [13.83687318, 100.030047];
   const [stores, setStores] = useState([]);
   const [myLocation, setMylocation] = useState({ lat: "", lng: "" });
   const [selectedStore, setSelectedStore] = useState(null);
@@ -55,10 +34,7 @@ function App() {
 
     const a =
       Math.sin(delta_phi / 2) * Math.sin(delta_phi / 2) +
-      Math.cos(phi_1) *
-        Math.cos(phi_2) *
-        Math.sin(delta_lambda / 2) *
-        Math.sin(delta_lambda / 2);
+      Math.cos(phi_1) * Math.cos(phi_2) * Math.sin(delta_lambda / 2) * Math.sin(delta_lambda / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in meters
@@ -67,8 +43,7 @@ function App() {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const response = await axios.get(`${base_url}/api/stores`);
-        console.log(response.data);
+        const response = await axios.get(`${base_url}/api/v1/stores`);
         if (response.status === 200) {
           setStores(response.data);
         }
@@ -109,12 +84,7 @@ function App() {
       return;
     }
 
-    const distance = calculateDistance(
-      myLocation.lat,
-      myLocation.lng,
-      selectedStore.lat,
-      selectedStore.lng
-    );
+    const distance = calculateDistance(myLocation.lat, myLocation.lng, selectedStore.lat, selectedStore.lng);
 
     if (distance <= deliveryZone.radius) {
       Swal.fire({
@@ -135,71 +105,17 @@ function App() {
 
   return (
     <>
-      <h1>STORE DELIVERY ZONE CHECKER</h1>
-      <button className="get-location-btn" onClick={handlerGetLocation}>
-        Get My Location
-      </button>
-      <button className="get-location-btn" onClick={handleLocationCheck}>
-        Check Delivery Availability
-      </button>
-
-      <div>
-        <MapContainer
-          center={center}
-          zoom={13}
-          scrollWheelZoom={true}
-          style={{ height: "75vh", width: "100vw" }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {stores.length > 0 &&
-            stores.map((store) => (
-              <Marker
-                key={store.id}
-                position={[store.lat, store.lng]}
-                icon={
-                  selectedStore && selectedStore.id === store.id
-                    ? selectedStoreIcon
-                    : storeIcon
-                } 
-                eventHandlers={{
-                  click: () => {
-                    setSelectedStore(store); 
-                  },
-                }}
-              >
-                <Popup>
-                  <b>{store.name}</b>
-                  <p>{store.address}</p>
-                  <a href={store.direction}>Get Direction</a>
-                </Popup>
-              </Marker>
-            ))}
-
-          <LocationMap
-            myLocation={myLocation}
-            icon={houseIcon}
-            onLocationSelect={setMylocation}
-          />
-
-          {selectedStore && (
-            <Marker
-              position={[selectedStore.lat, selectedStore.lng]}
-              icon={selectedStoreIcon}
-            >
-              {" "}
-              {/* ใช้ selectedStoreIcon */}
-              <Popup>
-                <b>{selectedStore.name}</b>
-                <p>{selectedStore.address}</p>
-              </Popup>
-            </Marker>
-          )}
-        </MapContainer>
-      </div>
+    <AppRoutes />
+      <HeaderComponent />
+      <ButtonComponent onGetLocation={handlerGetLocation} onCheckDelivery={handleLocationCheck} />
+      <MapComponent
+        center={center}
+        stores={stores}
+        selectedStore={selectedStore}
+        myLocation={myLocation}
+        onSelectStore={setSelectedStore}
+        onLocationSelect={setMylocation}
+      />
     </>
   );
 }
