@@ -4,10 +4,11 @@ const dbConfig = require("../config/db.config");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
+  logging: console.log, 
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorize: false,
+      rejectUnauthorized: false,
     },
   },
 });

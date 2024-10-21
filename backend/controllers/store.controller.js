@@ -1,18 +1,18 @@
-const Store = require("../models/store.model");
+const Store = require("../models/store.model")
 
 // Create and Save a New Store
 exports.create = async (req, res) => {
-  const { name, description, instructor } = req.body;
+  const { name, adminId, address, lat, lng } = req.body;
 
-  if (!name || !description || !instructor) {
+  if (!name || !adminId || !address || !lat || !lng) {  
     return res.status(400).send({
-      message: "Name and Description cannot be empty!",
+      message: "All fields (name, adminId, address, lat, lng) must be provided!",
     });
   }
 
   // Check if the Store already exists
-  await Store.findOne({ where: { name: name } }).then((Store) => {
-    if (Store) {
+  await Store.findOne({ where: { name: name } }).then((foundStore) => {
+    if (foundStore) {
       return res.status(400).send({
         message: "Store already exists!",
       });
@@ -21,10 +21,12 @@ exports.create = async (req, res) => {
     // Create a New Store
     const newStore = {
       name: name,
-      description: description,
-      instructor: instructor,
+      adminId: adminId,
+      address: address,
+      lat: lat,
+      lng: lng
     };
-
+    
     Store.create(newStore)
       .then((data) => {
         res.status(201).send(data);
@@ -126,3 +128,6 @@ exports.delete = async (req, res) => {
       });
     });
 };
+
+
+

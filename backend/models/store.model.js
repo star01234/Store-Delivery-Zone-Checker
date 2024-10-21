@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./db");
+const User = require("./user.model")
 
 // สร้าง Schema สำหรับ Store
 const Store = sequelize.define("Stores", {
@@ -31,6 +32,10 @@ const Store = sequelize.define("Stores", {
     allowNull: false,
   },
 });
+
+// สร้างความสัมพันธ์
+Store.belongsTo(User, { foreignKey: 'adminId' });
+User.hasMany(Store, { foreignKey: 'adminId' });
 
 Store.sync({ force: false })
   .then(() => {
